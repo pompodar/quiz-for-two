@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz For Two</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+        body {
+            overflow: hidden;
+            background-image: url(./background-3.jpg);
+            background-size: cover;
+        }
+
+        .wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100vw;
+            height: 100vh;
+            padding: 20px;
+        }
+
+        .question {
+            background: rgb(25, 204, 233);
+            border-radius: 20px;
+            color: white;
+            font-weight: 900;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+        }
+
+        .answers {
+            margin-top: 20px;
+        }
+
+        .answers > p {
+            background: grey;
+            color: white;
+            border-radius: 20px;
+            padding: 10px 15px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 900;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+        }
+
+        #nextButton {
+            display: none;
+            border-radius: 50%;
+            background: rgb(25, 204, 233);
+            padding: 24px;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+        }
+
+        #score {
+            display: none;
+            background-color: rgb(255, 207, 0);
+            border-radius: 20px;
+            padding: 10px 40px;
+            margin-top: 20px;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+            font-weight: 900;
+        }
+
+        input {
+            margin-top: 20px;
+            border-radius: 20px;
+            padding: 10px 40px;
+            border: none;
+            background-color: rgb(255, 207, 0) !important;
+            color: grey !important;
+            font-weight: 900 !important;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+        }
+
+        #login {
+            margin-top: 0;
+        }
+
+        #submit {
+            border-radius: 20px;
+            background: rgb(25, 204, 233);
+            padding: 10px 40px;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            margin-top: 20px;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+        }
+
+        .categories {
+            font-weight: 900;
+            color: black;
+            font-size: 18px;
+            display: none;
+            text-align: center;
+        }
+
+        .categories div {
+            font-size: 14px;
+            padding: 10px 40px;
+            border-radius: 20px;
+            background-color: rgb(25, 204, 233);
+            margin-top: 20px;
+            -webkit-box-shadow: 5px 5px 15px 5px #000000; 
+            box-shadow: 5px 5px 15px 5px #000000;
+            cursor: pointer;
+            color: black;
+        }
+
+        .categories .generalKnowledge {
+            background-color: rgb(255, 207, 0);
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="categories">
+            <div class="users"></div>
+            Categories
+            <div id="9" class="generalKnowledge">General Knowledge</div>
+            <div id="21" class="sport">Sport</div>
+            <div id="11" class="films">Films</div>
+        </div>
+        <div class="question"></div>
+        <div class="answers"></div>
+        <div id="nextButton">Go</div>
+        <input id="login"></input>
+        <input type="password" id="password">
+        <div id="submit">submit</div>
+        <div id="score"></div>
+    </div>
+        
+
+<script type="module">
+    // Import the functions you need from the SDKs you need
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.2/firebase-app.js";
+    import { getDatabase, set, update, ref ,push, child, onValue} from
+    "https://www.gstatic.com/firebasejs/9.6.2/firebase-database.js";
+
+    // TODO: Add SDKs for Firebase products that you want to use
+    // https://firebase.google.com/docs/web/setup#available-libraries
+
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyDO4jPM5gRhvtKvPo05hrWlDz7hOirTQww",
+    authDomain: "trivia-for-two.firebaseapp.com",
+    projectId: "trivia-for-two",
+    storageBucket: "trivia-for-two.appspot.com",
+    messagingSenderId: "194595752794",
+    appId: "1:194595752794:web:c6ea94b7350bfe3f46c163",
+    databaseURL: "https://trivia-for-two-default-rtdb.europe-west1.firebasedatabase.app"
+  };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Write
+let users = [];
+let user;
+let pass;
+let score = 0;
+let allOnline;
+let category = 9;
+
+const starCountRef2 = ref(database, 'users/' + user);
+console.log("ll");
+    onValue(starCountRef2, (snapshot) => {
+        console.log("feck" + snapshot.length);
+
+        snapshot.forEach(childSnapshot => {
+            console.log("shite");
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log(data + "kk");
+        if(data.includes("user")) {
+            alert(data + "sent you request")
+        }
+        
+        })
+    })
+
+
+function runFunction (evt) {
+    evt.preventDefault();
+    evt.stopPropagation();
+}
+
+
+const starCountRef1 = ref(database, 'users');
+    onValue(starCountRef1, (snapshot) => {
+        $('.users').empty();
+
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log(data.login);
+        let para = document.createElement("p");
+            para.innerHTML = data.login;
+            para.id = data.login;
+            $('.users')[0].appendChild(para);
+            document.getElementById(data.login).addEventListener("click", userSelected);
+    })
+    
+    })
+    let partner;
+
+    
+    
+    function userSelected (event) {
+        partner = event.srcElement.id;
+
+        const starCountRef = ref(database, 'users/' + partner);
+    onValue(starCountRef, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        if(data == "none") {
+        update(ref(database, 'users/' + partner), { 
+            requestSent: user + "user",
+            });
+        }
+        })
+    })
+    }
+
+
+
+    const taskId = push(child(ref(database), 'tasks')).key;
+    let go = $('#nextButton');
+    let login = $('#login');
+    let password = $('#password');
+    let submit = $('#submit');
+    let score1 = $('#score');
+
+    submit.click(function() {
+        
+
+        const starCountRef = ref(database, 'users/');
+    onValue(starCountRef, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log(data.password)
+        users.push(data);
+            if (data.password == password.val()  && data.login == login.val()) {
+            
+
+        login.css('display', 'none');
+        password.css('display', 'none');
+        submit.css('display', 'none');
+        
+        user = login.val();
+        pass = password.val()
+
+        const starCountRef3 = ref(database, 'users/' + user);
+console.log("ll");
+    onValue(starCountRef3, (snapshot) => {
+console.log(user)
+        snapshot.forEach(childSnapshot => {
+            console.log("shite");
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log(typeof data + data);
+        if (typeof data === "string") {
+        if(data.includes("user")) {
+            alert(data + "sent you request")
+        }
+    }
+        
+        })
+    })
+        
+        }
+        
+    });
+    
+        });     
+        if (user) {
+        $('.categories').css('display', 'block');
+
+    } 
+    });
+
+    // Read 
+let online = [];
+    const starCountRef = ref(database, 'users/');
+    onValue(starCountRef, (snapshot) => {
+        $('#score').empty()
+        online = [];
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log(data.login)
+        console.log(data.score)
+        console.log(data.online)
+        $('#score').append(data.login + " " + data.score + " ")
+        if (data.online == 'online') {
+online.push(data);
+        }
+        if(online.length = 2) {
+            allOnline = true;
+        } else {
+            allOnline = false;
+        }
+        });      
+    });
+
+let quest;
+let url = 'https://opentdb.com/api.php?amount=10&category=' + category + '&difficulty=easy&type=multiple';
+let allQuestionsReady = []
+
+    function scene (round) {    
+
+    fetch(url).then(res => {
+        return res.json();
+    }).then(questions => {
+$('.question').css('padding', '10px 40px')
+        let answers = document.getElementsByClassName('answers');
+        
+        let options = [];
+       
+        
+
+        if(2 == 2) {
+           
+            
+            const starCountRef = ref(database, 'users');
+    onValue(starCountRef, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        setTimeout(() => {
+                if(data.questionsReady == true) {
+            allQuestionsReady.push(data)
+        }
+            }, 900);
+        if(data.login == 'svjat') {
+
+            if(typeof data == "object") {
+               // alert(quest['results'][round]['question'])
+document.querySelector('.question').textContent = quest['results'][round]['question'];
+// alert(data.questions.results[round]['incorrect_answers'][0])
+
+for (let i = 0; i < 4; i++) {
+            if (i < 3) {
+                options.push(quest.results[round]['incorrect_answers'][i]);
+            } else {
+                options.push(quest.results[round]['correct_answer']);
+            }
+        }
+        
+            }
+        }
+
+    });
+    
+        });
+
+
+        }
+      
+
+    options.sort(() => Math.random() - 0.5);
+
+        answers[0].innerHTML = "";
+
+        for (let i = 0; i < 4; i++) {
+            let para = document.createElement("p");
+            para.innerHTML = options[i];
+            para.id = i;
+            answers[0].appendChild(para);
+            document.getElementById(i).addEventListener("click", answerSelected);
+        }
+            
+
+       
+
+        function answerSelected () {
+
+            update(ref(database, 'users/' + user), { 
+            online: 'offline',
+            });
+             $('#nextButton').css('pointer-events', 'none')
+            const starCountRef = ref(database, 'users');
+          onValue(starCountRef, (snapshot) => {
+        let allOffLine = [];
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        setTimeout(() => {
+            if (data.online == 'offline') {
+
+allOffLine.push(data.online)
+}
+        }, 1000);
+        
+    });
+    setTimeout(() => {
+        if(allOffLine.length == 2) {
+        $('#nextButton').css('pointer-events', 'auto')
+
+    }
+    }, 1001);
+    
+        });      
+            
+            
+            if (document.getElementById(event.srcElement.id).textContent == quest.results[round].correct_answer) {
+                alert('Right!');
+let scoriest = 0;
+                const starCountRef = ref(database, 'users/' + user);
+    onValue(starCountRef, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        if(data > -1) {
+        score = data + 1;
+        }
+        })
+    })
+
+    update(ref(database, 'users/' + user), { 
+            score: score,
+            });
+        
+        
+     
+            
+        
+
+            } else {
+                alert("Wrong! Correct Answer: " + quest.results[round].correct_answer);
+            }
+            $('#nextButton').css('display', 'block');
+
+        }
+        
+    }).catch(error => {
+        console.log(error);
+    })
+    }
+    let round = 0;
+
+    $('.categories div:not(".users")').on("click", (event) => {
+
+        let url = 'https://opentdb.com/api.php?amount=10&category=' + category + '&difficulty=easy&type=multiple';
+    fetch(url).then(res => {
+        return res.json();
+    }).then(questions => {
+        update(ref(database, 'users/' + user), { 
+            questions: questions,
+            questionsReady: true,
+            });
+    })
+
+    
+    const starCountRef = ref(database, 'users');
+    onValue(starCountRef, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        setTimeout(() => {
+                if(data.questionsReady == true) {
+            allQuestionsReady.push(data)
+        }
+            }, 900);
+        if(data.login == 'svjat') {
+            quest = data.questions;
+
+        }
+    })
+})
+        category = event.target.id;
+        $('.categories div').css('backgroundColor', 'rgb(25, 204, 233)')
+        $('#' + event.target.id).css('backgroundColor', 'rgb(255, 207, 0)')
+        setTimeout(() => {
+            go.css('display', 'block');
+            score1.css('display', 'block');
+            $('.categories').css('display', 'none');
+        }, 500);
+    })
+
+
+    document.getElementById('nextButton').addEventListener("click", play);
+        
+
+        function play () {
+            $('.categories').css('display', 'none');
+
+            update(ref(database, 'users/' + user), { 
+            online: 'online',
+            });
+
+            setTimeout(() => {
+                if (allOnline === true) {
+            $('#nextButton').css('display', 'none');
+            if(round < 11) {
+            //alert(round + 1 + ' round')
+scene(round)            
+            round++;
+            } else {
+                update(ref(database, 'users/' + user), { 
+            questions: "",
+            questionsReady: false,
+            online: "offline",
+            });
+            }
+        } else {
+                alert('Your partner in crime is not online!')
+            }
+            }, 1000);
+           
+    }
+
+    
+
+
+</script>
+</body>
+</html>
