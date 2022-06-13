@@ -71,6 +71,17 @@
             font-weight: 900;
         }
 
+    
+
+        .score-change {
+            animation: scoreChange 2s; /* beta */
+        }
+
+        @keyframes scoreChange {
+  0% {transform: scale(1);}
+  20% {transform: scale(1.5);}
+}
+
         input {
             margin-top: 20px;
             border-radius: 20px;
@@ -146,7 +157,7 @@
 <script type="module">
     // Import the functions you need from the SDKs you need
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.2/firebase-app.js";
-    import { getDatabase, set, update, ref ,push, child, onValue} from
+    import { getDatabase, set, update, ref ,push, child, onValue, get} from
     "https://www.gstatic.com/firebasejs/9.6.2/firebase-database.js";
 
     // TODO: Add SDKs for Firebase products that you want to use
@@ -223,22 +234,41 @@ const starCountRef1 = ref(database, 'users');
         partner = event.srcElement.id;
 
         const starCountRef = ref(database, 'users/' + partner);
-    onValue(starCountRef, (snapshot) => {
-        snapshot.forEach(childSnapshot => {
+
+const dbRef = ref(getDatabase());
+get(child(dbRef, 'users/' + partner)).then((snapshot) => {
+  if (snapshot.exists()) {
+    console.log(snapshot.val());
+    snapshot.forEach(childSnapshot => {
         const data = childSnapshot.val();
         const key = childSnapshot.key;
-        if(data == "none") {
+        console.log(data + " yes");
+        setTimeout(() => {
+            if(data == "none") {
         update(ref(database, 'users/' + partner), { 
             requestSent: user + "user",
             });
         }
+        }, 1000);
+        
+        
         })
-    })
+    // if(data == "none") {
+    //     update(ref(database, 'users/' + partner), { 
+    //         requestSent: user + "user",
+    //         });
+    //     }
+  } else {
+    console.log("No data available");
+  }
+}).catch((error) => {
+  console.error(error);
+});
+       
     }
 
 
 
-    const taskId = push(child(ref(database), 'tasks')).key;
     let go = $('#nextButton');
     let login = $('#login');
     let password = $('#password');
@@ -265,23 +295,6 @@ const starCountRef1 = ref(database, 'users');
         user = login.val();
         pass = password.val()
 
-        const starCountRef3 = ref(database, 'users/' + user);
-console.log("ll");
-    onValue(starCountRef3, (snapshot) => {
-console.log(user)
-        snapshot.forEach(childSnapshot => {
-            console.log("shite");
-        const data = childSnapshot.val();
-        const key = childSnapshot.key;
-        console.log(typeof data + data);
-        if (typeof data === "string") {
-        if(data.includes("user")) {
-            alert(data + "sent you request")
-        }
-    }
-        
-        })
-    })
         
         }
         
@@ -290,9 +303,33 @@ console.log(user)
         });     
         if (user) {
         $('.categories').css('display', 'block');
-
+        listenRequest()
     } 
     });
+function listenRequest() {
+    const starCountRef3 = ref(database, 'users/' + user);
+    onValue(starCountRef3, (snapshot) => {
+        snapshot.forEach(childSnapshot => {
+        const data = childSnapshot.val();
+        const key = childSnapshot.key;
+        console.log("hey");
+        if (typeof data === "string") {
+        if(data.includes("user")) {
+            // alert(data.replace('user','') + " sent you request")
+            if (confirm(data.replace('user','') + " sent you request") == true) {
+  alert("You pressed OK!");
+} else {
+  alert("You canceled!");
+  update(ref(database, 'users/' + user), { 
+            requestSent: "none",
+            });
+}
+        }
+    }
+        
+        })
+    })
+}
 
     // Read 
 let online = [];
@@ -389,6 +426,7 @@ for (let i = 0; i < 4; i++) {
        
 
         function answerSelected () {
+            $('.answers').css('pointer-events', 'none')
 
             update(ref(database, 'users/' + user), { 
             online: 'offline',
@@ -416,10 +454,10 @@ allOffLine.push(data.online)
     }, 1001);
     
         });      
-            
-            
+        $("#" + event.srcElement.id).css("background", "rgb(255, 207, 0)"); // beta
+        $("#" + event.srcElement.id).css("color", "black"); // beta
+
             if (document.getElementById(event.srcElement.id).textContent == quest.results[round].correct_answer) {
-                alert('Right!');
 let scoriest = 0;
                 const starCountRef = ref(database, 'users/' + user);
     onValue(starCountRef, (snapshot) => {
@@ -432,6 +470,8 @@ let scoriest = 0;
         })
     })
 
+    $("#score").addClass("score-change"); // beta
+
     update(ref(database, 'users/' + user), { 
             score: score,
             });
@@ -442,7 +482,19 @@ let scoriest = 0;
         
 
             } else {
-                alert("Wrong! Correct Answer: " + quest.results[round].correct_answer);
+                //alert("Wrong! Correct Answer: " + quest.results[round].correct_answer);
+                let answers = $('.answers').children("p");
+                console.log(answers);
+
+                for (let i = 0; i < answers.length; i++) {
+                   if($("#" + $('.answers').children("p").get(i).id).text() === (quest.results[round].correct_answer)) {
+                   $("#" + $('.answers').children("p").get(i).id).css("background", "red")
+                   }
+                }
+                
+                $("#" + event.srcElement.id).css("background", "rgb(255, 207, 0)"); // beta
+        $("#" + event.srcElement.id).css("color", "black"); // beta
+
             }
             $('#nextButton').css('display', 'block');
 
@@ -498,6 +550,10 @@ let scoriest = 0;
         
 
         function play () {
+            $("#score").removeClass("score-change"); // beta
+
+            $('.answers').css('pointer-events', 'auto')
+
             $('.categories').css('display', 'none');
 
             update(ref(database, 'users/' + user), { 
